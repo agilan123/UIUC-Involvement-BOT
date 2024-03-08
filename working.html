@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AVA - Your Calendar Assistant</title>
+<style>
+  body {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Salive previewns', Arial, sans-serif;
+    background-color: #333;
+    color: white;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+    }
+    .banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #000;
+    padding: 10px 20px;
+    color: rgb(202, 201, 201);
+    font-size: 24px; 
+    font-weight: bold;
+  }
+  .banner span {
+    flex: 1;
+    text-align: center;
+    font-size: 40px; 
+  }
+  .banner .date, .banner .project-info {
+    font-size: 18px;
+  }
+  .content {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+  }
+  .description {
+    width: 50%;
+    font-size: 18px;
+    padding-right: 20px;
+    text-align: center;
+
+  }
+  .query-output-container {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #aaa; 
+  border-radius: 15px; 
+  margin-top: 20px; 
+  margin-bottom: 20px; 
+  height: calc(100vh - 200px); 
+  overflow-y: auto; 
+}
+.query-input-output-container {
+  width: 50%;
+  padding: 10px;
+  border-radius: 15px; 
+  margin-top: 20px; 
+  margin-bottom: 20px; 
+  height: calc(100vh - 200px); 
+  overflow-y: hidden;
+}
+.query-input-display {
+  text-align: center;
+}
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes blinkCursor {
+    from { border-right-color: rgba(255,255,255,.75); }
+    to { border-right-color: transparent; }
+}
+
+#typedText {
+    font-family: monospace;
+    border-right: 3px solid rgba(255,255,255,.75);
+    padding: 20px; 
+    display: inline-block; 
+    animation: blinkCursor .75s step-end infinite;
+    text-align: center; 
+    line-height: 1.5;
+}
+
+
+.content {
+    display: flex;
+    justify-content: bottom;
+    align-items: center;
+    height: 100%;
+}
+
+  .query-box {
+    background-color: #555;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    position: relative;
+    padding: 10px;
+    display: block;
+    width: 100%;
+  }
+  .query-text {
+    animation: fadeIn 0.2s ease-out; 
+    word-break: break-all;
+    word-break: break-all;
+  }
+  .delete-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0 10px;
+    color: #aaa;
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+  .fixed-input-container {
+    padding: 10px 20px;
+    background-color: #333;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .input-field {
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    margin-bottom: 0;
+    margin-right: 10px; 
+    flex-grow: 1; 
+  }
+  .send-btn {
+    padding: 10px 20px;
+    border: none;
+    background-color: #666;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .delete-btn {
+    position: absolute;
+    top: 10px; 
+    right: 30px; 
+    width: 20px; 
+    height: 20px; 
+    line-height: 20px; 
+    text-align: center;
+    padding: 0;
+    color: #333; 
+    background-color: white; 
+    border-radius: 50%; 
+    cursor: pointer;
+    border: none;
+}
+  .send-btn:hover {
+    background-color: #ffffff;
+  }
+  #queryOutput {
+    height: calc(100vh - 140px); 
+    overflow-y: auto;
+  }
+</style>
+</head>
+<body>
+    <div class="banner">
+        <span>UIUC INVOLVEMENT BOT</span>
+        <div class="date" id="currentDateTime"></div>
+      </div>
+<div class="content">
+  <div class="query-input-output-container">
+    <div class="query-input-display" id="inputDisplay"></div>
+    <div class="query-output-container">
+      <div id="queryOutput"></div>
+    </div>
+  </div>
+  <div class="description" id = "typedText">
+    Placeholder for other things
+  </div>
+</div>
+<div class="fixed-input-container">
+  <input type="text" id="queryInput" class="input-field" placeholder="Enter task or set a goal...">
+  <button id="submitBtn" class="send-btn" style="margin-left: 10px;">Submit</button>
+
+</div>
+
+<script>
+     function updateDateTime() {
+    const now = new Date();
+    const formattedDateTime = now.toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    }) + '  |  ' + (now.toLocaleTimeString('en-US'));
+    document.getElementById('currentDateTime').textContent = formattedDateTime;
+  }
+  function typeWriter(text, i, fnCallback) {
+    if (i < (text.length)) {
+        document.querySelector("#typedText").innerHTML = text.substring(0, i+1) +'<span aria-hidden="true"></span>';
+
+        setTimeout(function() {
+            typeWriter(text, i + 1, fnCallback)
+        }, 40);
+    }
+
+    else if (typeof fnCallback == 'function') {
+
+        setTimeout(fnCallback, 700);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function(event) {
+    var text = "Placeholder for other functions"
+
+    function removeCursor() {
+        document.querySelector("#typedText").style.borderRight = 'none';
+    }
+    
+    typeWriter(text, 0, removeCursor);
+});
+ updateDateTime();
+setInterval(updateDateTime, 1000);
+document.getElementById('submitBtn').addEventListener('click', function() {
+    var input = document.getElementById('queryInput');
+    var output = document.getElementById('queryOutput');
+    var displayQuery = document.getElementById('inputDisplay');
+    
+    if (input.value.trim() === '') {
+      return;
+    }
+    
+    displayQuery.textContent = input.value;
+
+    var jsonData = JSON.stringify(input.value);
+
+    sendJSONToBackend(jsonData);
+
+    responses = JSON.parse(JSON.stringify(fetchModelPrediction()));
+
+    responses.forEach(response => {
+        parsed_response = JSON.parse(response);
+
+        var queryDiv = document.createElement('div');
+        queryDiv.className = 'query-box';
+    
+        var queryText = document.createElement('span');
+        queryText.textContent = parse_response.name;
+        queryText.className = 'query-text';
+        queryDiv.appendChild(queryText);
+
+        output.appendChild(queryDiv);
+        output.scrollTop = output.scrollHeight; 
+    });
+    
+    output.textContent = response.name;
+});
+
+function sendJSONToBackend(jsonFile) {
+    const formData = new FormData();
+    formData.append("query", jsonFile);
+
+    const backendURL = "http://your-backend-url.com/upload";
+
+
+    fetch(backendURL, {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => console.log("Success:", data)) 
+    .catch(error => console.error("Error:", error)); 
+}
+
+function fetchModelPrediction() {
+    fetch('http://your-backend-url.com/model-predict')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Model Prediction:', data);
+        })
+        .catch(error => console.error('Error:', error));
+
+    return data
+}
+</script>
+</body>
+</html>
