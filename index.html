@@ -49,13 +49,13 @@
     text-align: center;
   }
   .query-output-container {
-  width: 100%;
+  width: 90%;
   padding: 10px;
   border: 2px solid #aaa; 
   border-radius: 15px; 
   margin-top: 20px; 
   margin-bottom: 20px; 
-  height: calc(100vh - 200px); 
+  height: 90%; 
   overflow-y: auto; 
 }
 .query-input-output-container {
@@ -155,6 +155,14 @@
   height: calc(100vh - 140px); 
   overflow-y: auto;
 }
+.history {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #555;
+}
 </style>
 </head>
 <body>
@@ -175,8 +183,15 @@
     <input type="text" id="queryInput" class="input-field" placeholder="Enter your interests...">
     <button id="submitBtn" class="send-btn" style="margin-left: 10px;">Submit</button>
   </div>
+  <div class="history-container">
+    <div class="history" id="history">
+      <strong>History</strong>
+    </div>
+  </div>
 
   <script>
+    var queryHistory = [];
+
     function updateDateTime() {
       const now = new Date();
       const formattedDateTime = now.toLocaleDateString('en-US', {
@@ -190,7 +205,15 @@
       setInterval(updateDateTime, 1000);
     });
 
-    document.getElementById('submitBtn').addEventListener('click', function() {
+    document.getElementById('submitBtn').addEventListener('click', submitForm);
+
+    document.getElementById('queryInput').addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        submitForm();
+      }
+    });
+
+    function submitForm() {
       var input = document.getElementById('queryInput').value.trim();
       var output = document.getElementById('queryOutput');
       var displayQuery = document.getElementById('inputDisplay');
@@ -222,7 +245,27 @@
 
         output.appendChild(queryDiv);
       });
-    });
+
+      // Add the query to history
+      queryHistory.push(input);
+      updateHistory();
+    }
+
+    function updateHistory() {
+      var historyContainer = document.getElementById('history');
+      historyContainer.innerHTML = "<strong>History</strong>";
+
+      queryHistory.forEach(query => {
+        var historyItem = document.createElement('div');
+        historyItem.className = 'history';
+        historyItem.textContent = query;
+        historyItem.addEventListener('click', function() {
+          document.getElementById('queryInput').value = query;
+          submitForm();
+        });
+        historyContainer.appendChild(historyItem);
+      });
+    }
   </script>
 </body>
 </html>
