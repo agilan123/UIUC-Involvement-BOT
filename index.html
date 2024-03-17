@@ -162,6 +162,22 @@
   border-radius: 5px;
   cursor: pointer;
   background-color: #555;
+  overflow-y: auto; /* Enable vertical scrollbar when content exceeds container height */
+  max-height: 200px; /* Set the maximum height for scroll */
+}
+.example-queries {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  background-color: #555;
+  overflow-x: auto; /* Enable horizontal scrollbar when content exceeds container width */
+  white-space: nowrap; /* Prevent line breaks */
+}
+.example-query {
+  display: inline-block;
+  margin-right: 10px;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -177,6 +193,13 @@
     </div>
     <div class="description" id="typedText">
       Enter your interests below to find matching clubs:
+      <div class="example-queries">
+        <span class="example-query" onclick="useExampleQuery('Sports')">Sports</span>
+        <span class="example-query" onclick="useExampleQuery('Music')">Music</span>
+        <span class="example-query" onclick="useExampleQuery('Art')">Art</span>
+        <span class="example-query" onclick="useExampleQuery('Dance')">Dance</span>
+        <span class="example-query" onclick="useExampleQuery('Programming')">Programming</span>
+      </div>
     </div>
   </div>
   <div class="fixed-input-container">
@@ -265,6 +288,11 @@
         });
         historyContainer.appendChild(historyItem);
       });
+    }
+
+    function useExampleQuery(query) {
+      document.getElementById('queryInput').value = query;
+      submitForm();
     }
   </script>
 </body>
