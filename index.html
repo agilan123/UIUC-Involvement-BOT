@@ -38,10 +38,11 @@
     font-size: 18px;
   }
   .content {
-    flex: 1;
-    padding: 20px;
-    display: flex;
-  }
+  display: flex;
+  justify-content: bottom;
+  align-items: center;
+  height: calc(100vh - 100px); /* Adjusted height */
+}
   .description {
     width: 50%;
     font-size: 18px;
@@ -51,10 +52,11 @@
   .query-output-container {
   width: 90%;
   padding: 10px;
+  padding-bottom: 30px;
   border: 2px solid #aaa; 
   border-radius: 15px; 
-  margin-top: 20px; 
-  margin-bottom: 20px; 
+  margin-top: 10px; 
+  margin-bottom: 10px; 
   height: 90%; 
   overflow-y: auto; 
 }
@@ -64,7 +66,7 @@
   border-radius: 15px; 
   margin-top: 20px; 
   margin-bottom: 20px; 
-  height: calc(100vh - 200px); 
+  height: calc(100% - 20px); /* Adjusted height */
   overflow-y: hidden;
 }
 .query-input-display {
@@ -155,29 +157,38 @@
   height: calc(100vh - 140px); 
   overflow-y: auto;
 }
-.history {
-  margin-top: 10px;
+.history-container {
+  width: 50%;
   padding: 10px;
-  border: 1px solid #aaa;
-  border-radius: 5px;
-  cursor: pointer;
-  background-color: #555;
+  border-radius: 15px; 
+  margin-top: 20px; 
+  margin-bottom: 20px; 
+  height: calc(100% - 20px); /* Adjusted height */
   overflow-y: auto; /* Enable vertical scrollbar when content exceeds container height */
-  max-height: 200px; /* Set the maximum height for scroll */
+  position: fixed;
+  right: 0;
+  top: 0;
+  background-color: #333;
+  color: white;
+  z-index: 999; /* Ensure it's on top */
+  display: none; /* Initially hide */
 }
-.example-queries {
-  margin-top: 10px;
+.history-toggle-btn {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  background-color: #666;
+  color: white;
   padding: 10px;
-  border: 1px solid #aaa;
-  border-radius: 5px;
-  background-color: #555;
-  overflow-x: auto; /* Enable horizontal scrollbar when content exceeds container width */
-  white-space: nowrap; /* Prevent line breaks */
-}
-.example-query {
-  display: inline-block;
-  margin-right: 10px;
+  border-radius: 5px 0 0 5px;
   cursor: pointer;
+}
+.history-toggle-btn:hover {
+  background-color: #ffffff;
+}
+.hide {
+  display: none;
 }
 </style>
 </head>
@@ -188,7 +199,9 @@
   </div>
   <div class="content">
     <div class="query-input-output-container">
-      <div class="query-input-display" id="inputDisplay"></div>
+      <div class="query-input-display" id="inputDisplay">
+        Enter your interests below to find matching clubs:
+      </div>
       <div class="query-output-container" id="queryOutput"></div>
     </div>
     <div class="description" id="typedText">
@@ -206,7 +219,8 @@
     <input type="text" id="queryInput" class="input-field" placeholder="Enter your interests...">
     <button id="submitBtn" class="send-btn" style="margin-left: 10px;">Submit</button>
   </div>
-  <div class="history-container">
+  <div class="history-toggle-btn" id="historyToggleBtn" onclick="toggleHistory()">History</div>
+  <div class="history-container" id="historyContainer">
     <div class="history" id="history">
       <strong>History</strong>
     </div>
@@ -214,7 +228,10 @@
 
   <script>
     var queryHistory = [];
-
+    var firstInput = true;
+    var historyContainer = document.getElementById('historyContainer');
+  
+    // Function to update date and time
     function updateDateTime() {
       const now = new Date();
       const formattedDateTime = now.toLocaleDateString('en-US', {
@@ -222,24 +239,30 @@
       }) + '  |  ' + (now.toLocaleTimeString('en-US'));
       document.getElementById('currentDateTime').textContent = formattedDateTime;
     }
-
+  
+    // Update date and time on page load and every second
     document.addEventListener('DOMContentLoaded', function(event) {
       updateDateTime();
       setInterval(updateDateTime, 1000);
     });
-
+  
+    // Event listener for submit button click
     document.getElementById('submitBtn').addEventListener('click', submitForm);
-
+  
+    // Event listener for pressing Enter key in the input field
     document.getElementById('queryInput').addEventListener('keypress', function(event) {
       if (event.key === 'Enter') {
         submitForm();
       }
     });
-
+  
+    // Function to handle form submission
     function submitForm() {
       var input = document.getElementById('queryInput').value.trim();
       var output = document.getElementById('queryOutput');
       var displayQuery = document.getElementById('inputDisplay');
+      var typedText = document.getElementById('typedText');
+      var exampleQueries = document.querySelector('.description .example-queries');
 
       if (input === '') {
         return;
@@ -269,15 +292,26 @@
         output.appendChild(queryDiv);
       });
 
-      // Add the query to history
-      queryHistory.push(input);
-      updateHistory();
-    }
+      // Add the query to history if it's not already there
+      if (!queryHistory.includes(input)) {
+        queryHistory.push(input);
+        updateHistory();
+      }
 
+      // Hide "Enter your interests below" after the first input
+      if (firstInput) {
+        firstInput = false;
+        displayQuery.classList.add('hide');
+        typedText.classList.remove('hide');
+        exampleQueries.classList.remove('hide');
+      }
+    }
+  
+    // Function to update the history container with query history
     function updateHistory() {
       var historyContainer = document.getElementById('history');
       historyContainer.innerHTML = "<strong>History</strong>";
-
+  
       queryHistory.forEach(query => {
         var historyItem = document.createElement('div');
         historyItem.className = 'history';
@@ -289,11 +323,28 @@
         historyContainer.appendChild(historyItem);
       });
     }
-
+  
+    // Function to handle clicking on example queries
     function useExampleQuery(query) {
       document.getElementById('queryInput').value = query;
       submitForm();
     }
+  
+    // Function to toggle visibility of history container
+    function toggleHistory() {
+      if (historyContainer.style.display === 'none') {
+        historyContainer.style.display = 'block';
+      } else {
+        historyContainer.style.display = 'none';
+      }
+    }
+  
+    // Event listener to close history container when clicking outside of it
+    document.body.addEventListener('click', function(event) {
+      if (!historyContainer.contains(event.target) && event.target.id !== 'historyToggleBtn') {
+        historyContainer.style.display = 'none';
+      }
+    });
   </script>
 </body>
 </html>
